@@ -16,9 +16,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 # target_link_libraries(Demo MathFunctions)
 
 add_executable( client
-    src/client.cc
+    src/client/client.cc
 )
 
 add_executable( server
-    src/server.cc
+    src/server/server.cc
 )
