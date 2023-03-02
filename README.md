@@ -1,6 +1,10 @@
 # TinySocket
 一个小型Socket服务器通信项目
 
+## 运行方法
+1. 进入项目根目录, 或执行项目根目录的 `build.sh`(`bash build.sh`).
+2. 新建两个终端, 进入 `build` 目录, 先运行 `./server` 进入监听状态, 然后运行 `./client 127.0.0.1` 连接本地服务.
+
 ## 实现内容
 - 目前实现了简单的 Server 和 client 的通信
 - 简单模拟了 TCP 三次握手, 还没有对互相传输内容进行Check.
