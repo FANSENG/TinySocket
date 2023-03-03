@@ -52,7 +52,7 @@ void Client::setParm(string &str, int &SYN, int &ACK, int &seq, int &ack){
 int Client::handShake(){
     // SYN.ACK.seq.ack
     int ACK = 0, ack = 0, SYN = 1, seq = rand() % 100;
-    string message = to_string(SYN) + "." + to_string(ACK) + "." + to_string(seq) + "." + to_string(ack);
+    string message = to_string(SYN) + "." + to_string(ACK) + "." + to_string(seq) + "." + to_string(ack) + '\0';
     char recv_message[MAX_LENGTH];
     cout << "【TCP三次握手 Client】: 发送消息1[" << message << "]" << endl << endl;
     write(this->conn_socket, message.c_str(), message.size());
@@ -62,7 +62,7 @@ int Client::handShake(){
     cout << "【TCP三次握手 Client】: 接受消息2[" << recv_message << "]" << endl << endl;
 
     int tmp = ack; ACK = 1; SYN = 0; ack = seq + 1; seq = tmp;
-    message = to_string(SYN) + "." + to_string(ACK) + "." + to_string(seq) + "." + to_string(ack);
+    message = to_string(SYN) + "." + to_string(ACK) + "." + to_string(seq) + "." + to_string(ack) + '\0';
     cout << "【TCP三次握手 Client】: 发送消息3[" << message << "]" << endl << endl;
     write(this->conn_socket, message.c_str(), message.size());
     return 1;

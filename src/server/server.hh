@@ -46,7 +46,7 @@ int Server::handShake(int client_fd){
     cout << "【TCP三次握手 Server】: 接受消息1[" << recv_message << "]" << endl << endl;
     
     ACK = 1; SYN = 1; ack = seq + 1; seq = rand() % 100;
-    message = to_string(SYN) + "." + to_string(ACK) + "." + to_string(seq) + "." + to_string(ack);
+    message = to_string(SYN) + "." + to_string(ACK) + "." + to_string(seq) + "." + to_string(ack) + '\0';
     cout << "【TCP三次握手 Server】: 发送消息2[" << message << "]" << endl << endl;
     write(client_fd, message.c_str(), message.size());
 

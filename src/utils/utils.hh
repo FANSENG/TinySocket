@@ -31,4 +31,8 @@ void handShakeSetParm(string &str, int &SYN, int &ACK, int &seq, int &ack){
     ack = stoi(res[3]);
 }
 
+void cutString(string &str, const char ch){
+    while(str.at(str.size() - 1) == ch) str.pop_back();
+}
+
 #endif // UTILS_HH
