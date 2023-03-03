@@ -12,14 +12,14 @@ class Client{
 public:
     Client();
     ~Client();
-    bool closeConnect();
     void setBuffer(string str);
-    string getBuffer();
+    void setParm(string &str, int &SYN, int &ACK, int &seq, int &ack);
+    int handShake();
+    void run(Socket::Address address);
     void connect(Socket::Address address);
     void send();
     void receive();
 private:
-    int handShake();
     Socket::Socket conn_socket;
     char* buff;
 };
@@ -37,20 +37,16 @@ Client::~Client(){
     shutdown(this->conn_socket, SHUT_RDWR);
 }
 
-bool Client::closeConnect(){
-    ::close(this->conn_socket);
-}
-
 void Client::setBuffer(string str){
-    if(str.size() > MAX_LENGTH){
-        cout << "数据超过最大长度(" << MAX_LENGTH << ")! 设置失败" << endl;
-        return;
-    }
     strcpy(this->buff, str.c_str());
 }
 
-string Client::getBuffer(){
-    return this->buff;
+void Client::setParm(string &str, int &SYN, int &ACK, int &seq, int &ack){
+    vector<string> res = split(str, '.');
+    SYN = stoi(res[0]);
+    ACK = stoi(res[1]);
+    seq = stoi(res[2]);
+    ack = stoi(res[3]);
 }
 
 int Client::handShake(){
@@ -70,6 +66,26 @@ int Client::handShake(){
     cout << "【TCP三次握手 Client】: 发送消息3[" << message << "]" << endl << endl;
     write(this->conn_socket, message.c_str(), message.size());
     return 1;
+}
+
+void Client::run(Socket::Address address){
+    connect(address);
+    while(true){
+        cout << "请输入Message: ";
+        cin >> this->buff;
+
+        send();
+
+        // 睡眠 10ms
+        usleep(10000);
+
+        receive();
+        if(strcmp(this->buff, "exit") == 0){
+            cout << endl << "断开连接..." << endl;
+            break;
+        }
+    }
+    ::close(this->conn_socket);
 }
 
 void Client::connect(Socket::Address address){
@@ -92,6 +108,7 @@ void Client::send(){
 
 void Client::receive(){
     read(this->conn_socket, this->buff, MAX_LENGTH);
+    cout << endl <<"Server: " << this->buff << "" << endl;
 }
 
 #endif // CLIENT_HH

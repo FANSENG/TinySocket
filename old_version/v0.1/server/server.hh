@@ -11,37 +11,20 @@ class Server{
 public:
     Server();
     Server(int listen_num);
-    Server(int listen_num, int max_client);
     ~Server();
-
-    // 监听端口port
-    void listen(int port);
-
-    // 单线程Server，client发送来的数据使用 dataProcess函数处理
-    void run_single(void (*dataProcess)(char*));
-
-    // 多线程Server，client发送来的数据使用 dataProcess函数处理
+    int handShake(int client_fd);
+    void run(void (*dataProcess)(char*));
     void run_multithread(void (*dataProcess)(char*));
-
-    // 具体server过程
     void serve(int client_fd, struct sockaddr_in client_addr, void (*dataProcess)(char*));
 private:
-    int handShake(int client_fd);   // 模拟三次握手
-    Socket::Socket listen_socket;   // 监听套接字描述符
-    char buff[MAX_LENGTH];          // 缓冲区
-    int listen_num;                 // 同时connect的最多数量
-    vector<int> client_list;        // 服务 client 的套接字描述符列表
-    int max_client;                 // 最多同时服务 client 的数量
+    Socket::Socket listen_socket;
+    char buff[MAX_LENGTH];
+    int listen_num;
 };
 
 Server::Server(){ Server(1); }
 
 Server::Server(int listen_num){
-    Server(listen_num, 5);
-}
-
-Server::Server(int listen_num, int max_client){
-    this->max_client = max_client;
     this->listen_num = listen_num;
     memset(this->buff, 0, MAX_LENGTH);
 }
@@ -73,8 +56,7 @@ int Server::handShake(int client_fd){
     return 1;
 }
 
-void Server::listen(int port){
-    // Ipv4 字节流套接字 TCP
+void Server::run(void (*dataProcess)(char*)){
     this->listen_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if(this->listen_socket == -1){   
         exit(1);
@@ -82,20 +64,16 @@ void Server::listen(int port){
     struct sockaddr_in address;
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons(port);
+    address.sin_port = htons(8765);
     if((bind(this->listen_socket, (sockaddr*)&address, sizeof(struct sockaddr_in))) == -1){
         exit(1);
     }
 
     cout << "开始监听任务..." << endl;
-    if(::listen(this->listen_socket, 5) != 0){
+    if(listen(this->listen_socket, 5) != 0){
         perror("listen");
         exit(1);
     }
-}
-
-void Server::run_single(void (*dataProcess)(char*)){
-    listen(8765);
 
     struct sockaddr_in client_addr;
     int size = sizeof(sockaddr_in);
@@ -115,35 +93,9 @@ void Server::run_single(void (*dataProcess)(char*)){
         exit(1);
     }
     
+
     cout << endl << "与 client [" << client_fd << "-> "<< client_ip <<":" << client_port << "] 成功建立连接, 开始服务..." << endl;
     serve(client_fd, client_addr, dataProcess);
-    cout << endl <<"监听结束..." << endl;
-}
-
-void Server::run_multithread(void (*dataProcess)(char*)){
-    listen(8765);
-
-    char client_ip[16];
-    struct sockaddr_in client_addr;
-    int client_fd, size = sizeof(sockaddr_in);
-    uint16_t client_port;
-    while(true){
-        // * accept 会阻塞线程等待连接, 当 accept 收到连接请求, 获得到 client_fd时 才与client建立了连接
-        client_fd = accept(this->listen_socket, (struct sockaddr*)&client_addr, (socklen_t*)&size);
-        // 读取IP
-        inet_ntop(AF_INET, &(client_addr.sin_addr.s_addr), client_ip, 16);
-        // 读取Port
-        client_port = ntohs(client_addr.sin_port);
-        
-        cout << endl << "与 client [" << client_fd << "-> "<< client_ip <<":" << client_port << "] 成功建立连接, 开始服务..." << endl;
-        
-        // TODO 这里要创建子线程去处理
-        serve(client_fd, client_addr, dataProcess);
-        
-        // 子线程使 client_fd 引用计数 +1
-        // 这里的close并不会使套接字真正关闭，只有引用计数为0时才关闭
-        close(client_fd);
-    }
     cout << endl <<"监听结束..." << endl;
 }
 

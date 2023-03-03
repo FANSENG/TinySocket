@@ -10,11 +10,34 @@ int main(int argc, char* argv[]){
     }
     Client *client = new Client();
     Socket::Address address;
+    string buff;
+
     address.ip = argv[1];
     address.port = 8765;
     address.family = AF_INET;
+    client->connect(address);
 
-    client->run(address);
+    while(true){
+        cout << "请输入Message: ";
+        cin >> buff;
+        if(buff == "exit"){
+            cout << endl << "断开连接..." << endl;
+            break;
+        }
+
+        client->setBuffer(buff);
+        client->send();
+
+        // 睡眠 10ms
+        usleep(10000);
+
+        client->receive();
+        buff = client->getBuffer();
+        cout << endl <<"Server: " << buff << "" << endl;
+    }
+
+    client->closeConnect();
+    delete client;
 
     return 0;
 }
